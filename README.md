@@ -44,6 +44,31 @@ cargo build --release
 
 The application requires at least one country code and supports optional ASN numbers.
 
+### Config File (config.toml)
+
+The application will read an optional `config.toml` file from the current working directory. CLI arguments override values in the config file.
+
+Precedence order:
+
+1. Hardcoded defaults
+2. `config.toml`
+3. CLI arguments
+
+Example `config.toml`:
+
+```toml
+country_codes = ["DK", "SE"]
+asn_numbers = ["1234"]
+
+file_url = "https://wetmore.ca/ip/haproxy_geo_ip.txt"
+sha256_url = "https://wetmore.ca/ip/haproxy_geo_ip.sha256"
+local_file_path = "haproxy_geo_ip.txt"
+local_file_cidr = "okcidr.txt"
+asn_base_url = "https://raw.githubusercontent.com/ipverse/asn-ip/master/as"
+```
+
+If `country_codes` is not provided in `config.toml`, you must pass at least one `--country` on the CLI.
+
 ### Basic Usage - Country Codes Only
 
 Filter CIDR blocks for one or more countries:
@@ -80,7 +105,7 @@ cargo run -- --country dk --asn 1234 --asn 5678
 ### Running the Compiled Binary
 
 ```bash
-./target/release/ha-geo-ip -c dk -c se -a 1234
+./target/release/cidrfest -c dk -c se -a 1234
 ```
 
 ## Sample Output
@@ -169,7 +194,7 @@ The geolocation data file contains two columns:
 
 ## Command-Line Arguments
 
-- `-c, --country <CODE>`: Country code to filter (required, can be specified multiple times)
+- `-c, --country <CODE>`: Country code to filter (required unless provided via `config.toml`, can be specified multiple times)
   - Example: `-c dk -c se -c no`
   - Case-insensitive
 

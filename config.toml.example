@@ -1,0 +1,24 @@
+# Config file for cidrfest
+# Place this file as "config.toml" in the current working directory.
+# CLI arguments override any values in this file.
+
+# Country codes to filter (required unless provided via CLI)
+# country_codes = ["DK", "SE", "NO"]
+
+# ASN numbers to include (optional)
+# asn_numbers = ["1234", "5678"]
+
+# Geolocation data URL
+# file_url = "https://wetmore.ca/ip/haproxy_geo_ip.txt"
+
+# SHA256 checksum URL
+# sha256_url = "https://wetmore.ca/ip/haproxy_geo_ip.sha256"
+
+# Local cached geolocation file path
+# local_file_path = "haproxy_geo_ip.txt"
+
+# Output CIDR file path
+# local_file_cidr = "okcidr.txt"
+
+# ASN base URL
+# asn_base_url = "https://raw.githubusercontent.com/ipverse/asn-ip/master/as"
