@@ -15,11 +15,19 @@ use std::path::Path;
 )]
 struct Args {
     /// Country codes to filter (can be specified multiple times)
-    #[arg(short = 'c', long = "country", help = "Country code to filter (required unless provided via config.toml; can be specified multiple times)")]
+    #[arg(
+        short = 'c',
+        long = "country",
+        help = "Country code to filter (required unless provided via config.toml; can be specified multiple times)"
+    )]
     country_codes: Vec<String>,
 
     /// ASN numbers to include (can be specified multiple times)
-    #[arg(short = 'a', long = "asn", help = "ASN number to include (optional; can be specified multiple times; overrides config.toml if provided)")]
+    #[arg(
+        short = 'a',
+        long = "asn",
+        help = "ASN number to include (optional; can be specified multiple times; overrides config.toml if provided)"
+    )]
     asn_numbers: Vec<String>,
 }
 
@@ -68,9 +76,9 @@ fn build_config(args: Args, file_config: Config) -> Result<AppConfig, String> {
     let local_file_cidr = file_config
         .local_file_cidr
         .unwrap_or_else(|| "okcidr.txt".to_string());
-    let asn_base_url = file_config
-        .asn_base_url
-        .unwrap_or_else(|| "https://raw.githubusercontent.com/ipverse/asn-ip/master/as".to_string());
+    let asn_base_url = file_config.asn_base_url.unwrap_or_else(|| {
+        "https://raw.githubusercontent.com/ipverse/asn-ip/master/as".to_string()
+    });
 
     let mut country_codes = file_config.country_codes.unwrap_or_default();
     let mut asn_numbers = file_config.asn_numbers.unwrap_or_default();
@@ -84,7 +92,9 @@ fn build_config(args: Args, file_config: Config) -> Result<AppConfig, String> {
     }
 
     if country_codes.is_empty() {
-        return Err("At least one country code must be provided via --country or config.toml".to_string());
+        return Err(
+            "At least one country code must be provided via --country or config.toml".to_string(),
+        );
     }
 
     let country_codes = country_codes
@@ -126,11 +136,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     println!("Fetching IP geolocation data from: {}", config.file_url);
-    let response = client
-        .get(&config.file_url)
-        .headers(headers)
-        .send()
-        .await?;
+    let response = client.get(&config.file_url).headers(headers).send().await?;
 
     let content = match response.status() {
         StatusCode::OK => {
@@ -138,7 +144,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let content = response.bytes().await?;
 
             // Verify SHA256 of the newly downloaded file
-            println!("Verifying integrity with SHA256 from: {}", config.sha256_url);
+            println!(
+                "Verifying integrity with SHA256 from: {}",
+                config.sha256_url
+            );
             let sha256_response = client.get(&config.sha256_url).send().await?;
             let sha256_content = sha256_response.text().await?;
             let expected_hash = sha256_content.split_whitespace().next().unwrap_or("");
