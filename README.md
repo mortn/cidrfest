@@ -251,6 +251,23 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## ToDo
 - Add systemd files to demonstrate how to let this app run as non-root, and still allow us to smoothly copy an updated okcidr.txt file to /etc/haproxy/okcidr.txt and then reload the haproxy
 
+## systemd
+
+Example units to run cidrfest once per day from `/etc/cidrfest`:
+
+```bash
+sudo install -m 0755 /usr/local/bin/cidrfest /usr/local/bin/cidrfest
+sudo install -d /etc/cidrfest
+sudo install -m 0644 cidrfest.service /etc/systemd/system/cidrfest.service
+sudo install -m 0644 cidrfest.timer /etc/systemd/system/cidrfest.timer
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now cidrfest.timer
+
+# run once immediately
+sudo systemctl start cidrfest.service
+```
+
 ## Changelog
 
 ### v0.2.0

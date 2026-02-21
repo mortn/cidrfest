@@ -9,14 +9,17 @@ use std::path::Path;
 
 #[derive(Parser, Debug)]
 #[command(name = "cidrfest")]
-#[command(about = "Filter IP geolocation data by country codes", long_about = None)]
+#[command(
+    about = "Filter IP geolocation data by country codes",
+    long_about = "Reads optional config.toml from the current working directory. CLI arguments override config.toml values."
+)]
 struct Args {
     /// Country codes to filter (can be specified multiple times)
-    #[arg(short = 'c', long = "country")]
+    #[arg(short = 'c', long = "country", help = "Country code to filter (required unless provided via config.toml; can be specified multiple times)")]
     country_codes: Vec<String>,
 
     /// ASN numbers to include (can be specified multiple times)
-    #[arg(short = 'a', long = "asn")]
+    #[arg(short = 'a', long = "asn", help = "ASN number to include (optional; can be specified multiple times; overrides config.toml if provided)")]
     asn_numbers: Vec<String>,
 }
 

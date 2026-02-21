@@ -1,0 +1,12 @@
+[Unit]
+Description=Run cidrfest to refresh CIDR ACLs
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/etc/cidrfest
+ExecStart=/usr/local/bin/cidrfest
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

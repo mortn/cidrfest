@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily cidrfest refresh
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=10m
+Unit=cidrfest.service
+
+[Install]
+WantedBy=timers.target
