@@ -14,8 +14,8 @@ cidrfest builds a plain list of IPv4 CIDRs for the countries and ASNs you choose
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/mortn/ha-geo-asn-acl.git
-cd ha-geo-asn-acl
+git clone https://github.com/mortn/cidrfest.git
+cd cidrfest
 ```
 
 2. Build the application:
