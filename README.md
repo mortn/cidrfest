@@ -1,31 +1,14 @@
-# HAProxy Geo & ASN ACL Generator
+# cidrfest
 
-## What is this?
-This is a rust command-line application that fetches IP geolocation data and ASN CIDR blocks and generates HAProxy-compatible ACL files filtered by country codes and/or ASN numbers.
+cidrfest builds a plain list of IPv4 CIDRs for the countries and ASNs you choose. It downloads a geolocation dataset and optional ASN CIDR lists, filters them, and writes a single output file.
 
-## Features
+## Highlights
 
-- **Flexible Filtering**: Filter CIDR blocks by country code(s) and/or ASN number(s)
-- **Efficient Caching**: Only downloads the geolocation file if it's newer than the local cached version using HTTP `If-Modified-Since` headers
-- **Integrity Verification**: Validates downloaded geolocation files using SHA256 checksums
-- **ASN Support**: Fetch and include CIDR blocks for specific Autonomous System Numbers (ASNs)
-- **HAProxy Ready**: Generates output file (`okcidr.txt`) with CIDR blocks only, compatible with HAProxy's ACL `-f` flag
-- **Case-Insensitive**: Country codes work in any case (dk, DK, Dk all work the same)
-- **Error Handling**: Robust error handling for network issues and file corruption
-
-## How It Works
-
-1. **Local File Check**: Checks if a local copy of `haproxy_geo_ip.txt` exists and gets its modification time
-2. **Conditional Download**: Sends an HTTP request with `If-Modified-Since` header to only download if the remote file is newer
-3. **Integrity Verification**: Downloads and verifies the SHA256 checksum for any newly fetched geolocation files
-4. **Country Filtering**: Parses the file to extract CIDR blocks matching the specified country codes
-5. **ASN Fetching**: Downloads CIDR blocks for specified ASN numbers from the ipverse/asn-ip repository
-6. **Output Generation**: Writes all CIDR blocks (country + ASN) to `okcidr.txt` in HAProxy-compatible format
-
-## Prerequisites
-
-- Rust 1.70+ (2021 edition)
-- Internet connection for downloading geolocation and ASN data
+- Filter by country codes and/or ASN numbers
+- Case-insensitive country codes
+- Caches the geolocation file with conditional HTTP download
+- Verifies downloads with SHA256
+- Outputs CIDRs only (one per line)
 
 ## Installation
 
@@ -42,7 +25,7 @@ cargo build --release
 
 ## Usage
 
-The application requires at least one country code and supports optional ASN numbers.
+You must provide at least one country code (via CLI or config). ASN numbers are optional.
 
 ### Config File (config.toml)
 
@@ -108,37 +91,9 @@ cargo run -- --country dk --asn 1234 --asn 5678
 ./target/release/cidrfest -c dk -c se -a 1234
 ```
 
-## Sample Output
+## Output
 
-```
-Fetching IP geolocation data from: https://wetmore.ca/ip/haproxy_geo_ip.txt
-New version of the file found, downloading...
-Verifying integrity with SHA256 from: https://wetmore.ca/ip/haproxy_geo_ip.sha256
-SHA256 verification successful!
-Local file updated.
-
-Processing CIDR blocks for country codes: ["DK", "SE"]...
-Filtered CIDR blocks written to: okcidr.txt
-
-Summary:
-DK CIDR blocks: 245
-SE CIDR blocks: 312
-Total matching blocks: 557
-
-Processing ASN data for: ["1234"]...
-Fetching ASN data from: https://raw.githubusercontent.com/ipverse/asn-ip/master/as/1234/ipv4-aggregated.txt
-AS1234 CIDR blocks fetched: 128
-
-ASN CIDR blocks appended to: okcidr.txt
-
-ASN Summary:
-AS1234 CIDR blocks: 128
-Total ASN blocks: 128
-```
-
-## Output File Format
-
-The generated `okcidr.txt` file contains one CIDR block per line, ready for use with HAProxy:
+The generated `okcidr.txt` file contains one CIDR block per line:
 
 ```
 5.44.64.0/19
@@ -168,7 +123,7 @@ backend servers
     server server1 192.168.1.10:8080
 ```
 
-**Important**: Use `src -f /etc/haproxy/okcidr.txt` NOT `src,map_ip()`. The `-f` flag is the correct way to match source IPs against a CIDR list file in HAProxy.
+**Note**: Use `src -f /etc/haproxy/okcidr.txt` NOT `src,map_ip()`. The `-f` flag is the correct way to match source IPs against a CIDR list file in HAProxy.
 
 ## Data Sources
 
@@ -176,21 +131,7 @@ backend servers
 - **SHA256 Checksum**: https://wetmore.ca/ip/haproxy_geo_ip.sha256
 - **ASN Data**: https://github.com/ipverse/asn-ip (IPv4 aggregated CIDR blocks)
 
-The geolocation data file contains two columns:
-1. **CIDR Block**: IP address range in CIDR notation
-2. **Country Code**: Two-letter ISO country code
-
-## File Structure
-
-```
-.
-├── Cargo.toml
-├── src/
-│   └── main.rs
-├── haproxy_geo_ip.txt    # Cached geolocation data (created after first run)
-├── okcidr.txt            # Generated HAProxy ACL file
-└── README.md
-```
+If you rely on this, please consider supporting the data providers.
 
 ## Command-Line Arguments
 
@@ -203,53 +144,9 @@ The geolocation data file contains two columns:
 
 - `-h, --help`: Display help information
 
-## Dependencies
-
-- **reqwest**: HTTP client for fetching remote files
-- **sha2**: SHA-256 hashing for integrity verification
-- **tokio**: Async runtime for efficient I/O operations
-- **httpdate**: HTTP date parsing for conditional requests
-- **clap**: Command-line argument parsing
-
-## Error Handling
-
-The application handles several error conditions:
-
-- **Network failures**: Connection timeouts, DNS resolution issues
-- **HTTP errors**: 404, 500, and other HTTP status codes (with warnings for ASN fetches)
-- **Checksum mismatches**: Corrupted downloads are detected and rejected
-- **File I/O errors**: Permission issues, disk space problems
-- **Missing ASN data**: Continues processing other ASNs if one fails
-
-## Performance
-
-- **Bandwidth Efficient**: Only downloads geolocation data when files are updated
-- **Fast Processing**: Async I/O for network operations
-- **Memory Efficient**: Streams file processing without loading entire file into memory
-- **Parallel ASN Fetching**: Fetches multiple ASN files efficiently
-
-## Use Cases
-
-- **Geo-blocking**: Restrict access to specific countries
-- **Geo-allowing**: Only allow access from specific countries
-- **ASN filtering**: Block or allow traffic from specific network providers
-- **Mixed filtering**: Combine country and ASN filters for fine-grained control
-- **HAProxy ACLs**: Generate ready-to-use ACL files for HAProxy
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## ToDo
-- Add systemd files to demonstrate how to let this app run as non-root, and still allow us to smoothly copy an updated okcidr.txt file to /etc/haproxy/okcidr.txt and then reload the haproxy
+MIT
 
 ## systemd
 
